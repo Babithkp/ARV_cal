@@ -1,113 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comparable Table</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparables App</title>
 </head>
-<body>
-  <main>
-    <table id="comparableTable" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+
+<body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; color: #333;">
+  <main style="display: flex; flex-direction: column; gap: 40px; align-items: flex-end;">
+    <div style="display: flex; flex-direction: column; width: 30%;">
+      <label style="font-weight: bold; margin-bottom: 5px;">
+        Enter the Sqft of the property you are interested in:
+        <span style="color: red;">*</span>
+      </label>
+      <input id="interestedPropertySqft" type="number"
+        style="border: 2px solid #ccc; border-radius: 5px; padding: 10px; width: 100%;" placeholder="Enter Sqft" />
+    </div>
+    <table style="border-collapse: collapse; border: 1px solid #ddd; width: 100%; background-color: #fff;">
       <thead>
-        <tr>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Comparables</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Address</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Year Built</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Bedroom</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Bathroom</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Price</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Sqft</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Price/Sqft</th>
-          <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Actions</th>
+        <tr style="background-color: #4caf50; color: #fff; text-align: left; font-weight: bold;">
+          <th style="padding: 10px; width: 10%;">Comparables</th>
+          <th style="padding: 10px; width: 20%;">Price</th>
+          <th style="padding: 10px; width: 20%;">Sqft</th>
+          <th style="padding: 10px; width: 20%;">Price/Sqft</th>
+          <th style="padding: 10px; width: 10%;">Actions</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="dataTable"></tbody>
     </table>
-    <button id="addNewComparableBtn" style="background-color: #2ecc71; color: white; border: none; padding: 10px 15px; margin-top: 10px; cursor: pointer; border-radius: 4px;">
+    <button id="addComparableButton"
+      style="background-color: #007bff; color: white; font-weight: bold; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
       Add New Comparable
     </button>
+    <div style="display: flex; justify-content: space-between; width: 100%;">
+      <div style=" margin-right: 10px;">
+        <label style="font-weight: bold;">Total Price/sqft:</label>
+        <input id="totalPriceInput" readonly
+          style="border: 2px solid #ccc; border-radius: 5px; padding: 10px; width: 100%;" />
+      </div>
+      <div style="margin-right: 10px;">
+        <label style="font-weight: bold;">Count of Comparables:</label>
+        <input id="countInput" readonly
+          style="border: 2px solid #ccc; border-radius: 5px; padding: 10px; width: 100%;" />
+      </div>
+      <div style="margin-right: 10px;">
+        <label style="font-weight: bold;">Average Price/sqft:</label>
+        <input id="averagePriceInput" readonly
+          style="border: 2px solid #ccc; border-radius: 5px; padding: 10px; width: 100%;" />
+      </div>
+      <div >
+        <label style="font-weight: bold;">ARV (After Repair Value):</label>
+        <input id="arvInput" readonly style="border: 2px solid #ccc; border-radius: 5px; padding: 10px; width: 100%;" />
+      </div>
+    </div>
   </main>
 
   <script>
     let data = [];
     let addClicked = false;
+    let newData = { price: "", sqft: "" };
+
+    function calculateMetrics() {
+      const totalPrice = data.reduce((a, b) => a + b.pricePerSqft, 0);
+      const averagePrice = (totalPrice / data.length || 0).toFixed(2);
+      const interestedPropertySqft = parseInt(document.getElementById("interestedPropertySqft").value || "0", 10);
+      const ARV = (interestedPropertySqft * (totalPrice / data.length || 0)).toFixed(2);
+
+      document.getElementById("totalPriceInput").value = totalPrice.toFixed(2);
+      document.getElementById("countInput").value = data.length;
+      document.getElementById("averagePriceInput").value = averagePrice;
+      document.getElementById("arvInput").value = ARV;
+    }
 
     function renderTable() {
-      const tableBody = document.querySelector('#comparableTable tbody');
-      tableBody.innerHTML = '';
-      data.forEach((item) => {
-        const row = `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.id}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.address}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.yearBuilt}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.bedroom}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.bathroom}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.price}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">${item.sqft}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">$${item.pricePerSqft}</td>
-            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-              <button style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;" 
-                onclick="removeItem(${item.id})">Remove</button>
-            </td>
-          </tr>
+      const dataTable = document.getElementById("dataTable");
+      dataTable.innerHTML = "";
+
+      data.forEach((item, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td style="padding: 10px; border: 1px solid #ddd;">${index + 1}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${item.price}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${item.sqft}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">$${item.pricePerSqft.toFixed(2)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">
+            <button
+              style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;"
+              onclick="removeComparable(${index})"
+            >
+              Remove
+            </button>
+          </td>
         `;
-        tableBody.innerHTML += row;
+        dataTable.appendChild(row);
       });
 
       if (addClicked) {
-        const row = `
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 8px;">${data.length + 1}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="text" id="address" placeholder="Address" style="width: 100%; padding: 5px;"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="number" id="yearBuilt" placeholder="Year Built" style="width: 100%; padding: 5px;"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="number" id="bedroom" placeholder="Bedroom" style="width: 100%; padding: 5px;"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="number" id="bathroom" placeholder="Bathroom" style="width: 100%; padding: 5px;"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="text" id="price" placeholder="Price" style="width: 100%; padding: 5px;" oninput="updatePricePerSqft()"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="number" id="sqft" placeholder="Sqft" style="width: 100%; padding: 5px;" oninput="updatePricePerSqft()"/></td>
-            <td style="border: 1px solid #ddd; padding: 8px;"><input type="text" id="pricePerSqft" placeholder="Price/Sqft" style="width: 100%; padding: 5px;" readonly/></td>
-            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-              <button style="background-color: #3498db; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px;" 
-                onclick="addNewHandler()">Add</button>
-            </td>
-          </tr>
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+          <td style="padding: 15px; border: 1px solid #ddd;">${data.length + 1}</td>
+          <td style="padding: 15px; border: 1px solid #ddd;">
+            <input style="border: 1px solid #ccc; padding: 5px; width: 100%;" placeholder="Price" id="newPrice" type="number"/>
+          </td>
+          <td style="padding: 15px; border: 1px solid #ddd;">
+            <input style="border: 1px solid #ccc; padding: 5px; width: 100%;" placeholder="Sqft" id="newSqft" oninput="updatePricePerSqft()" type="number"/>
+          </td>
+          <td style="padding: 15px; border: 1px solid #ddd;">
+            <input style="border: 1px solid #ccc; padding: 5px; width: 100%;" id="pricePerSqft" readonly />
+          </td>
+          <td style="padding: 15px; border: 1px solid #ddd;">
+            <button
+              style="background-color: #007bff; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;"
+              onclick="addNewComparable()"
+            >
+              Add
+            </button>
+          </td>
         `;
-        tableBody.innerHTML += row;
+        dataTable.appendChild(newRow);
       }
+
+      calculateMetrics();
     }
 
-    function addNewHandler() {
-      const address = document.querySelector('#address').value;
-      const yearBuilt = document.querySelector('#yearBuilt').value;
-      const bedroom = document.querySelector('#bedroom').value;
-      const bathroom = document.querySelector('#bathroom').value;
-      const price = document.querySelector('#price').value;
-      const sqft = document.querySelector('#sqft').value;
+    function updatePricePerSqft() {
+      const price = parseFloat(document.getElementById("newPrice").value || "0");
+      const sqft = parseFloat(document.getElementById("newSqft").value || "0");
+      const pricePerSqft = sqft ? (price / sqft).toFixed(2) : "0";
+      document.getElementById("pricePerSqft").value = pricePerSqft;
+    }
 
-      if (!address || !yearBuilt || !bedroom || !bathroom || !price || !sqft) {
-        alert('Please fill in all fields');
+    function removeComparable(index) {
+      data.splice(index, 1);
+      renderTable();
+    }
+
+    function addNewComparable() {
+      const newPrice = document.getElementById("newPrice").value;
+      const newSqft = document.getElementById("newSqft").value;
+
+      if (!newPrice || !newSqft) {
+        alert("Please fill in all fields");
         return;
       }
 
-      const priceValue = parseInt(price.replace(/\D/g, ''), 10);
-      const sqftValue = parseInt(sqft, 10);
+      const priceValue = parseFloat(newPrice);
+      const sqftValue = parseFloat(newSqft);
 
       if (isNaN(priceValue) || isNaN(sqftValue)) {
-        alert('Invalid price or sqft values');
+        alert("Invalid price or sqft values");
         return;
       }
-
-      const pricePerSqft = (priceValue / sqftValue).toFixed(2);
 
       const newItem = {
         id: data.length + 1,
-        address,
-        yearBuilt: parseInt(yearBuilt, 10),
-        bedroom: parseInt(bedroom, 10),
-        bathroom: parseInt(bathroom, 10),
-        price,
+        price: newPrice,
         sqft: sqftValue,
-        pricePerSqft,
+        pricePerSqft: priceValue / sqftValue,
       };
 
       data.push(newItem);
@@ -115,22 +165,7 @@
       renderTable();
     }
 
-    function updatePricePerSqft() {
-      const price = document.querySelector('#price').value;
-      const sqft = document.querySelector('#sqft').value;
-      const priceValue = parseInt(price.replace(/\D/g, ''), 10);
-      const sqftValue = parseInt(sqft, 10);
-
-      const pricePerSqft = sqftValue && !isNaN(priceValue) ? (priceValue / sqftValue).toFixed(2) : '0';
-      document.querySelector('#pricePerSqft').value = pricePerSqft;
-    }
-
-    function removeItem(id) {
-      data = data.filter(item => item.id !== id);
-      renderTable();
-    }
-
-    document.querySelector('#addNewComparableBtn').addEventListener('click', () => {
+    document.getElementById("addComparableButton").addEventListener("click", () => {
       addClicked = true;
       renderTable();
     });
@@ -138,4 +173,5 @@
     renderTable();
   </script>
 </body>
+
 </html>
